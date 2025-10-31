@@ -1,0 +1,1 @@
+Dependencies/node_modules/vendorLogsnpm-debug.log*yarn-debug.log*yarn-error.log*.logBuild artifacts/dist/build/out.cache/Local configuration and environment variables.env.env.local.env.*.local.DS_Store.vscode/Application SpecificThe HTML file contains all code and should generally be tracked,but if you separate assets, ignore them here.*.css*.js
