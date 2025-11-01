@@ -25,6 +25,9 @@
             }
         }
     </script>
+    <script 
+  src="https://www.paypal.com/sdk/js?client-id=BAAcf1kWjy3evwliNOOBGdnzoNyt081tt7QSQd28W91uuR4MaeCHhd2lSRJv9bXmL0krOvo8LgDSDCyRTk&components=hosted-buttons&disable-funding=venmo&currency=USD">
+    </script>
     <style>
         /* General styling for checklist and transitions */
         .check-item {
@@ -122,6 +125,12 @@
                 <p id="message" class="text-sm mt-4 text-center text-gray-500"></p>
 
             </div>
+            <div id="paypal-container-WWP2GXPHBMF7L"></div>
+<script>
+  paypal.HostedButtons({
+    hostedButtonId: "WWP2GXPHBMF7L",
+  }).render("#paypal-container-WWP2GXPHBMF7L")
+</script>
 
             <!-- List Display Panel -->
             <div class="lg:col-span-2">
@@ -666,6 +675,7 @@
 </div>
 </body>
 </html>
+
 
 
 
