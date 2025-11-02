@@ -149,7 +149,7 @@
                         <!-- Yearly Plan Display (PayPal Button) -->
                         <div class="p-4 rounded-xl shadow-lg border-2 border-gray-300 bg-white">
                             <h4 class="text-lg font-bold text-gray-900 mb-2">Yearly Pro Plan ($58.90/year) - Best Value</h4>
-                            <div id="paypal-button-container-P-3U614682GF909514XNEDQ75Y"></div>
+                            <div id="paypal-button-container-P-2ED119619H365873LNEDSKIQ"></div>
                             <p class="mt-2 text-xs text-gray-500">Billed annually with a 15-day free trial. (Secure payment via PayPal)</p>
                         </div>
                     </div>
@@ -701,7 +701,7 @@
                 createSubscription: function(data, actions) {
                     return actions.subscription.create({
                         /* Creates the subscription */
-                        plan_id: 'P-3U614682GF909514XNEDQ75Y'
+                        plan_id: 'P-2ED119619H365873LNEDSKIQ'
                     });
                 },
                 onApprove: function(data, actions) {
@@ -712,7 +712,7 @@
                     console.error('Yearly PayPal Error:', err);
                     alertBox("Payment failed or was cancelled. Please try again.", 'Payment Error');
                 }
-            }).render('#paypal-button-container-P-3U614682GF909514XNEDQ75Y');
+            }).render('#paypal-button-container-P-2ED119619H365873LNEDSKIQ');
         }
 
 
@@ -738,3 +738,4 @@
     </script>
 </body>
 </html>
+
