@@ -47,7 +47,7 @@
                 <p class="text-gray-600 flex-grow mb-6">Access all premium features on a flexible monthly basis. Cancel anytime.</p>
                 
                 <div id="monthly-paypal-button" class="paypal-button-container">
-                    <div id="paypal-button-container-P-70T72989C08040450NEEZFWQ"></div>
+                    <div id="paypal-button-container-P-6NB43284EH327422ENEC5YTA"></div>
 <script src="https://www.paypal.com/sdk/js?client-id=Adx5J0QnhmzrIGJJST-qw0GM9FkVHb_6utdEwDmVuUd4Un86vH3Qj84lsMq0UDuOBx7xt_OBcjhF5pjr&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
 <script>
   paypal.Buttons({
@@ -60,13 +60,13 @@
       createSubscription: function(data, actions) {
         return actions.subscription.create({
           /* Creates the subscription */
-          plan_id: 'P-70T72989C08040450NEEZFWQ'
+          plan_id: 'P-6NB43284EH327422ENEC5YTA'
         });
       },
       onApprove: function(data, actions) {
         alert(data.subscriptionID); // You can add optional success message for the subscriber here
       }
-  }).render('#paypal-button-container-P-70T72989C08040450NEEZFWQ'); // Renders the PayPal button
+  }).render('#paypal-button-container-P-6NB43284EH327422ENEC5YTA'); // Renders the PayPal button
 </script>
                     
                 </div>
@@ -79,7 +79,7 @@
                 <p class="text-gray-600 flex-grow mb-6">Save 16% annually! Best value for long-term access.</p>
                 
                 <div id="yearly-paypal-button" class="paypal-button-container">
-                    <div id="paypal-button-container-P-2ED119619H365873LNEDSKIQ"></div>
+                    <div id="paypal-button-container-P-3U614682GF909514XNEDQ75Y"></div>
 <script src="https://www.paypal.com/sdk/js?client-id=Adx5J0QnhmzrIGJJST-qw0GM9FkVHb_6utdEwDmVuUd4Un86vH3Qj84lsMq0UDuOBx7xt_OBcjhF5pjr&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
 <script>
   paypal.Buttons({
@@ -92,13 +92,13 @@
       createSubscription: function(data, actions) {
         return actions.subscription.create({
           /* Creates the subscription */
-          plan_id: 'P-2ED119619H365873LNEDSKIQ'
+          plan_id: 'P-3U614682GF909514XNEDQ75Y'
         });
       },
       onApprove: function(data, actions) {
         alert(data.subscriptionID); // You can add optional success message for the subscriber here
       }
-  }).render('#paypal-button-container-P-2ED119619H365873LNEDSKIQ'); // Renders the PayPal button
+  }).render('#paypal-button-container-P-3U614682GF909514XNEDQ75Y'); // Renders the PayPal button
 </script>
                 
                 </div>
@@ -113,8 +113,8 @@
 
     <script>
         // Placeholder Plan IDs - Replace with your actual PayPal Subscription Plan IDs
-        const MONTHLY_PLAN_ID = ''P-70T72989C08040450NEEZFWQ';
-        const YEARLY_PLAN_ID = 'P-2ED119619H365873LNEDSKIQ';
+        const MONTHLY_PLAN_ID = 'P-6NB43284EH327422ENEC5YTA';
+        const YEARLY_PLAN_ID = 'P-3U614682GF909514XNEDQ75Y';
         const messageBox = document.getElementById('message-box');
 
         /**
@@ -222,12 +222,13 @@
         // --- Start Rendering ---
         window.onload = function() {
             // FIX: Use the defined constants for the plan IDs to avoid the SyntaxError
-            renderPayPalButton('monthly-paypal-button', 'P-70T72989C08040450NEEZFWQ', 'Monthly Pro');
-            renderPayPalButton('yearly-paypal-button', P-2ED119619H365873LNEDSKIQ, 'Yearly Elite');
+            renderPayPalButton('monthly-paypal-button', 'P-6NB43284EH327422ENEC5YTA', 'Monthly Pro');
+            renderPayPalButton('yearly-paypal-button', 'P-3U614682GF909514XNEDQ75Y' 'Yearly Elite');
         };
 
     </script>
 </body>
 </html>
+
 
 
