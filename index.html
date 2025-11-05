@@ -21,8 +21,6 @@
                         'card': '#FFFFFF',
                         'danger': '#EF4444',
                         'gemini': '#4285F4', // Google/Gemini Blue
-                        'paypal-blue': '#0070BA', // Darker blue for PayPal buttons/links
-                        'paypal-gold': '#FFC439', // Gold for button color
                         'support': '#FFDD00', // Yellow for Buy Me a Coffee
                     }
                 }
@@ -63,8 +61,7 @@
         }
     </style>
 
-    <!-- PayPal SDK Script (Loaded Once) -->
-    <script src="https://www.paypal.com/sdk/js?client-id=Adx5J0QnhmzrIGJJST-qw0GM9FkVHb_6utdEwDmVuUd4Un86vH3Qj84lsMq0UDuOBx7xt_OBcjhF5pjr&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+    <!-- REMOVED: PayPal SDK Script -->
 </head>
 <body class="font-sans bg-background min-h-screen flex flex-col">
 
@@ -86,7 +83,7 @@
     <main class="flex-grow container mx-auto p-4 md:p-8">
         <div class="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-            <!-- Left Column: Setup and Subscription -->
+            <!-- Left Column: Setup and Support -->
             <div class="lg:col-span-1 bg-card p-6 rounded-xl shadow-2xl border border-gray-100 h-fit sticky top-20">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">Plan Setup</h2>
 
@@ -130,31 +127,17 @@
 
                 <p id="message" class="text-sm mt-4 text-center text-gray-500"></p>
 
-                <!-- NEW SUBSCRIPTION SECTION (Now using PayPal Smart Buttons) -->
+                <!-- REPLACED: PayPal Subscription Section with a generic Support Placeholder -->
                 <div class="mt-8 pt-4 border-t border-gray-200">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Go Pro: Unlock Unlimited Access</h3>
-                    <p class="text-sm text-center text-gray-600 mb-6">
-                        Upgrade now to remove limits on meal planning and support continuous development.
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Support the Tool</h3>
+                    <p class="text-sm text-center text-gray-600 mb-4">
+                        Enjoying the generator? Help keep the servers running and unlock future features!
                     </p>
-
-                    <div class="space-y-6">
-                        
-                        <!-- Monthly Plan Display (PayPal Button) -->
-                        <div class="p-4 rounded-xl shadow-lg border-2 border-primary-dark bg-white">
-                            <h4 class="text-lg font-bold text-gray-900 mb-2">Monthly Pro Plan ($5.89/month)</h4>
-                            <div id="paypal-button-container-P-6NB43284EH327422ENEC5YTA"></div>
-                            <p class="mt-2 text-xs text-gray-500">Billed monthly with a 15-day free trial. (Secure payment via PayPal)</p>
-                        </div>
-
-                        <!-- Yearly Plan Display (PayPal Button) -->
-                        <div class="p-4 rounded-xl shadow-lg border-2 border-gray-300 bg-white">
-                            <h4 class="text-lg font-bold text-gray-900 mb-2">Yearly Pro Plan ($58.90/year) - Best Value</h4>
-                            <div id="paypal-button-container-P-3U614682GF909514XNEDQ75Y”></div>
-                            <p class="mt-2 text-xs text-gray-500">Billed annually with a 15-day free trial. (Secure payment via PayPal)</p>
-                        </div>
-                    </div>
+                    <a href="#" class="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-support text-gray-800 font-semibold rounded-xl transition-all duration-300 shadow-md hover:bg-support/90">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.736 9.488c-.688 0-1.291.439-1.527 1.054a3.896 3.896 0 01-3.696 2.458h-.024c-1.397-.024-2.527-1.155-2.527-2.553v-5.698c0-1.22-.988-2.21-2.208-2.21h-.853c-1.22 0-2.21.99-2.21 2.21v5.698c0 1.258.487 2.483 1.371 3.424 1.137 1.155 2.585 1.954 4.193 2.155.048 0 .096-.024.145-.024 1.705 0 3.327-.723 4.547-2.002.836-.884 1.309-1.954 1.309-3.045V9.488zm-5.115 1.393c.121 0 .241-.012.361-.024h.024a1.883 1.883 0 001.812-1.246c.145-.313.29-.638.41-.951.096-.241.265-.362.505-.362h.741c.241 0 .41.121.506.362.121.313.241.638.361.951.193.483.483.853.864 1.094.048.024.096.024.145.024 1.054 0 1.883-.801 1.883-1.883 0-.674.386-1.289 1.054-1.555.241-.096.386-.337.386-.602 0-.313-.217-.579-.506-.674-.688-.241-1.357-.482-1.972-.772-.801-.362-1.59-.844-2.28-1.503-.988-.939-1.527-2.232-1.527-3.565 0-2.384 1.93-4.339 4.316-4.339 1.22 0 2.385.506 3.249 1.455.988 1.106 1.555 2.597 1.555 4.169V9.488h1.22c.241 0 .482.121.602.313.121.193.145.434 0 .674-.434.627-1.078 1.106-1.741 1.371-.844.313-1.717.506-2.585.579-.072 0-.145.024-.217.024-2.059 0-3.992-.939-5.326-2.484z"/></svg>
+                        <span>Buy Me a Coffee</span>
+                    </a>
                 </div>
-                <!-- END NEW SUBSCRIPTION SECTION -->
 
             </div>
 
@@ -656,74 +639,13 @@
             document.body.insertAdjacentHTML('beforeend', modalHtml);
         }
 
-        /**
-         * Renders the PayPal subscription buttons.
-         */
-        function renderPayPalButtons() {
-            // Check if the PayPal object is loaded before trying to render
-            if (typeof paypal === 'undefined') {
-                console.error("PayPal SDK not loaded.");
-                return;
-            }
+        // REMOVED: renderPayPalButtons function
 
-            // --- Monthly Plan Button ---
-            paypal.Buttons({
-                style: {
-                    shape: 'rect',
-                    color: 'gold',
-                    layout: 'vertical',
-                    label: 'subscribe'
-                },
-                createSubscription: function(data, actions) {
-                    return actions.subscription.create({
-                        /* Creates the subscription */
-                        plan_id: 'P-6NB43284EH327422ENEC5YTA'
-                    });
-                },
-                onApprove: function(data, actions) {
-                    // Replaced alert() with custom alertBox()
-                    alertBox("Subscription ID: " + data.subscriptionID, 'Monthly Subscription Approved'); 
-                },
-                onError: function(err) {
-                    console.error('Monthly PayPal Error:', err);
-                    alertBox("Payment failed or was cancelled. Please try again.", 'Payment Error');
-                }
-            }).render('#paypal-button-container-P-6NB43284EH327422ENEC5YTA');
-
-            // --- Yearly Plan Button ---
-            paypal.Buttons({
-                style: {
-                    shape: 'rect',
-                    color: 'gold',
-                    layout: 'vertical',
-                    label: 'subscribe'
-                },
-                createSubscription: function(data, actions) {
-                    return actions.subscription.create({
-                        /* Creates the subscription */
-                        plan_id: 'P-3U614682GF909514XNEDQ75Y'
-                    });
-                },
-                onApprove: function(data, actions) {
-                    // Replaced alert() with custom alertBox()
-                    alertBox("Subscription ID: " + data.subscriptionID, 'Yearly Subscription Approved');
-                },
-                onError: function(err) {
-                    console.error('Yearly PayPal Error:', err);
-                    alertBox("Payment failed or was cancelled. Please try again.", 'Payment Error');
-                }
-            }).render('#paypal-button-container-P-3U614682GF909514XNEDQ75Y');
-        }
-
-
-        // Initialize display and PayPal buttons on window load
+        // Initialize display on window load
         window.onload = function() {
             initialPlaceholder.classList.remove('hidden');
             clearListButton.classList.add('hidden');
             generatePlanBtn.classList.add('hidden');
-
-            // Render PayPal buttons after the DOM is fully loaded
-            renderPayPalButtons();
         };
 
 
@@ -732,11 +654,8 @@
         window.generateMealPlan = generateMealPlan;
         window.copyList = copyList;
         window.clearList = clearList;
-        window.alertBox = alertBox; // Also needed for the modal to close itself
-        window.renderPayPalButtons = renderPayPalButtons; // Expose for debugging if needed
+        window.alertBox = alertBox; 
         // ******************************************************************************
     </script>
 </body>
 </html>
-
-
