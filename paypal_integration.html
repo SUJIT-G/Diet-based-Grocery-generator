@@ -4,231 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subscription Payment</title>
-    <!-- Load Tailwind CSS -->
+
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
+
+    <!-- PayPal SDK (LOAD ONLY ONCE) -->
+    <script src="https://www.paypal.com/sdk/js?client-id=Adx5J0QnhmzrIGJJST-qw0GM9FkVHb_6utdEwDmVuUd4Un86vH3Qj84lsMq0UDuOBx7xt_OBcjhF5pjr&vault=true&intent=subscription"></script>
+
     <style>
+        body { font-family: Inter, sans-serif; }
         .paypal-button-container {
-            min-height: 40px; /* Ensures space for the button to render */
+            min-height: 40px;
             margin-top: 1rem;
         }
     </style>
-    <!-- Load PayPal JavaScript SDK -->
-    <!-- The client-id used here is extracted from your error log. In a real app, this should be a valid sandbox or production ID. -->
-    <!-- The vault=true and intent=subscription parameters match your error log. -->
-    <script src="https://www.paypal.com/sdk/js?client-id=Adx5J0QnhmzrIGJJST-qw0GM9FkVHb_6utdEwDmVuUd4Un86vH3Qj84lsMq0UDuOBx7xt_OBcjhF5pjr&vault=true&intent=subscription"></script>
 </head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4 font-sans">
 
-    <div class="max-w-4xl w-full bg-white shadow-xl rounded-xl p-8 md:p-12">
-        <h1 class="text-3xl font-extrabold text-gray-900 mb-6 text-center">
-            Subscription Checkout
-        </h1>
-        <p class="text-gray-600 mb-10 text-center">
-            Choose your plan to get started. The buttons below are implemented with enhanced error handling to manage the 
-            **"Can not read window host"** security error that occurs when the PayPal SDK runs inside an iframe.
-        </p>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Monthly Plan Card -->
-            <div class="flex flex-col border border-indigo-200 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-                <h2 class="text-2xl font-bold text-indigo-700 mb-2">Monthly Pro</h2>
-                <p class="text-4xl font-extrabold text-gray-900 mb-4">$9.99<span class="text-base font-medium text-gray-500"> / month</span></p>
-                <p class="text-gray-600 flex-grow mb-6">Access all premium features on a flexible monthly basis. Cancel anytime.</p>
-                
-                <div id="monthly-paypal-button" class="paypal-button-container">
-                    <div id="paypal-button-container-P-6NB43284EH327422ENEC5YTA"></div>
-<script src="https://www.paypal.com/sdk/js?client-id=Adx5J0QnhmzrIGJJST-qw0GM9FkVHb_6utdEwDmVuUd4Un86vH3Qj84lsMq0UDuOBx7xt_OBcjhF5pjr&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
-<script>
-  paypal.Buttons({
-      style: {
-          shape: 'rect',
-          color: 'gold',
-          layout: 'vertical',
-          label: 'subscribe'
-      },
-      createSubscription: function(data, actions) {
-        return actions.subscription.create({
-          /* Creates the subscription */
-          plan_id: 'P-6NB43284EH327422ENEC5YTA'
-        });
-      },
-      onApprove: function(data, actions) {
-        alert(data.subscriptionID); // You can add optional success message for the subscriber here
-      }
-  }).render('#paypal-button-container-P-6NB43284EH327422ENEC5YTA'); // Renders the PayPal button
-</script>
-                    
-                </div>
-            </div>
+<div class="max-w-4xl w-full bg-white shadow-xl rounded-xl p-8 md:p-12">
+    
+    <h1 class="text-3xl font-extrabold text-center mb-6">Subscription Checkout</h1>
+    <p class="text-center text-gray-600 mb-10">Choose your plan to get started.</p>
 
-            <!-- Yearly Plan Card -->
-            <div class="flex flex-col border border-pink-200 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow bg-pink-50">
-                <h2 class="text-2xl font-bold text-pink-700 mb-2">Yearly Elite</h2>
-                <p class="text-4xl font-extrabold text-gray-900 mb-4">$99.99<span class="text-base font-medium text-gray-500"> / year</span></p>
-                <p class="text-gray-600 flex-grow mb-6">Save 16% annually! Best value for long-term access.</p>
-                
-                <div id="yearly-paypal-button" class="paypal-button-container">
-                    <div id="paypal-button-container-P-3U614682GF909514XNEDQ75Y"></div>
-<script src="https://www.paypal.com/sdk/js?client-id=Adx5J0QnhmzrIGJJST-qw0GM9FkVHb_6utdEwDmVuUd4Un86vH3Qj84lsMq0UDuOBx7xt_OBcjhF5pjr&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
-<script>
-  paypal.Buttons({
-      style: {
-          shape: 'rect',
-          color: 'gold',
-          layout: 'vertical',
-          label: 'subscribe'
-      },
-      createSubscription: function(data, actions) {
-        return actions.subscription.create({
-          /* Creates the subscription */
-          plan_id: 'P-3U614682GF909514XNEDQ75Y'
-        });
-      },
-      onApprove: function(data, actions) {
-        alert(data.subscriptionID); // You can add optional success message for the subscriber here
-      }
-  }).render('#paypal-button-container-P-3U614682GF909514XNEDQ75Y'); // Renders the PayPal button
-</script>
-                
-                </div>
-            </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+        <!-- Monthly Plan -->
+        <div class="flex flex-col border border-indigo-200 rounded-xl p-6 shadow-md hover:shadow-lg transition">
+            <h2 class="text-2xl font-bold text-indigo-700 mb-2">Monthly Pro</h2>
+            <p class="text-4xl font-extrabold text-gray-900 mb-4">
+                $9.99 <span class="text-base text-gray-500">/ month</span>
+            </p>
+            <p class="text-gray-600 flex-grow mb-6">Full premium access. Cancel anytime.</p>
+
+            <div id="paypal-monthly" class="paypal-button-container"></div>
         </div>
 
-        <div id="message-box" class="mt-8 p-4 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-lg hidden">
-            <!-- Messages, errors, or success confirmations will display here -->
+        <!-- Yearly Plan -->
+        <div class="flex flex-col border border-pink-200 rounded-xl p-6 shadow-md hover:shadow-lg transition bg-pink-50">
+            <h2 class="text-2xl font-bold text-pink-700 mb-2">Yearly Elite</h2>
+            <p class="text-4xl font-extrabold text-gray-900 mb-4">
+                $99.99 <span class="text-base text-gray-500">/ year</span>
+            </p>
+            <p class="text-gray-600 flex-grow mb-6">Save 16% annually!</p>
+
+            <div id="paypal-yearly" class="paypal-button-container"></div>
         </div>
 
     </div>
+</div>
 
-    <script>
-        // Placeholder Plan IDs - Replace with your actual PayPal Subscription Plan IDs
-        const MONTHLY_PLAN_ID = 'P-6NB43284EH327422ENEC5YTA';
-        const YEARLY_PLAN_ID = 'P-3U614682GF909514XNEDQ75Y';
-        const messageBox = document.getElementById('message-box');
+<script>
+    // Your PayPal Plan IDs
+    const MONTHLY_PLAN_ID = "P-6NB43284EH327422ENEC5YTA";
+    const YEARLY_PLAN_ID  = "P-3U614682GF909514XNEDQ75Y";
 
-        /**
-         * Utility function to display messages in the UI.
-         * @param {string} message The message to display.
-         * @param {string} type The type of message ('success', 'error', 'info').
-         */
-        function displayMessage(message, type = 'info') {
-            // Check if the message is already visible to avoid spamming the UI on repeated errors
-            if (messageBox.textContent === message && !messageBox.classList.contains('hidden')) {
-                return;
-            }
-
-            messageBox.textContent = message;
-            messageBox.className = 'mt-8 p-4 rounded-lg';
-            
-            switch (type) {
-                case 'success':
-                    messageBox.classList.add('bg-green-100', 'border-green-300', 'text-green-800');
-                    break;
-                case 'error':
-                    messageBox.classList.add('bg-red-100', 'border-red-300', 'text-red-800');
-                    // We only console.error the controlled message now.
-                    break;
-                case 'info':
-                default:
-                    messageBox.classList.add('bg-yellow-100', 'border-yellow-300', 'text-yellow-800');
-                    break;
-            }
-            messageBox.classList.remove('hidden');
+    // MONTHLY BUTTON
+    paypal.Buttons({
+        createSubscription: function(data, actions) {
+            return actions.subscription.create({
+                plan_id: MONTHLY_PLAN_ID
+            });
+        },
+        onApprove: function(data, actions) {
+            alert("🎉 Monthly Subscription Activated!\nID: " + data.subscriptionID);
         }
+    }).render('#paypal-monthly');
 
-
-        /**
-         * Renders the PayPal subscription button for a specific plan.
-         * @param {string} elementId The ID of the container element.
-         * @param {string} planId The PayPal subscription plan ID.
-         * @param {string} planName The descriptive name of the plan.
-         */
-        function renderPayPalButton(elementId, planId, planName) {
-            // Check if the PayPal object is available
-            if (typeof paypal === 'undefined') {
-                const errorMessage = `PayPal SDK not loaded. Ensure the script tag is correctly placed and loaded.`;
-                displayMessage(errorMessage, 'error');
-                console.error(errorMessage);
-                return;
-            }
-
-            const container = document.getElementById(elementId);
-            if (!container) {
-                console.error(`Container element with ID #${elementId} not found.`);
-                return;
-            }
-            
-            // We rely solely on the onError hook, as it's correctly triggered by the SDK
-            // when initialization fails due to the "Can not read window host" error.
-            paypal.Buttons({
-                // Set up the transaction details (required for subscriptions)
-                createSubscription: function(data, actions) {
-                    return actions.subscription.create({
-                        plan_id: planId
-                    });
-                },
-
-                // Called after the subscription is approved
-                onApprove: function(data, actions) {
-                    const successMessage = `Subscription Approved! Plan: ${planName}. Subscription ID: ${data.subscriptionID}`;
-                    displayMessage(successMessage, 'success');
-                    console.log('Subscription approved for:', planName, data);
-                },
-
-                // Called if the user cancels or the setup fails
-                onCancel: function(data) {
-                    displayMessage(`Subscription setup for ${planName} cancelled by the user.`, 'info');
-                    console.log('Subscription Cancelled:', data);
-                },
-
-                // Called for any errors during the transaction flow, including initialization failure
-                onError: function(err) {
-                    // Check if the error is the specific iframe restriction error
-                    const isIframeHostError = err && typeof err.message === 'string' && err.message.includes('Can not read window host');
-
-                    if (isIframeHostError) {
-                        // Log a single, controlled message for the expected iframe error
-                        const consoleErrorMessage = `[${planName} PayPal Error] FATAL IFRAME RESTRICTION: The SDK failed to initialize due to "Can not read window host". This is an expected security limitation in iframe environments.`;
-                        const uiErrorMessage = `Error loading PayPal button: This is likely due to platform security restrictions (running in an iframe). Check console for the single, controlled error message.`;
-                        
-                        // Update UI with the platform restriction message
-                        displayMessage(uiErrorMessage, 'error');
-                        console.error(consoleErrorMessage, err);
-
-                        // Provide a clear fallback message in the button container
-                        if (container) {
-                            container.innerHTML = `<p class="text-sm text-center text-red-500 font-semibold pt-2">Button failed to load (Iframe Restriction)</p>`;
-                        }
-                    } else {
-                        // Handle other potential errors (network, API, etc.)
-                        displayMessage(`A transaction or network error occurred during the ${planName} setup. Check the console.`, 'error');
-                        console.error(`PayPal General Error for ${planName} Button:`, err);
-                    }
-                },
-            }).render(`#${elementId}`); // Render the button into the specified element
+    // YEARLY BUTTON
+    paypal.Buttons({
+        createSubscription: function(data, actions) {
+            return actions.subscription.create({
+                plan_id: YEARLY_PLAN_ID
+            });
+        },
+        onApprove: function(data, actions) {
+            alert("🎉 Yearly Subscription Activated!\nID: " + data.subscriptionID);
         }
+    }).render('#paypal-yearly');
 
-        // --- Start Rendering ---
-        window.onload = function() {
-            // FIX: Use the defined constants for the plan IDs to avoid the SyntaxError
-            renderPayPalButton('monthly-paypal-button', 'P-6NB43284EH327422ENEC5YTA', 'Monthly Pro');
-            renderPayPalButton('yearly-paypal-button', 'P-3U614682GF909514XNEDQ75Y' 'Yearly Elite');
-        };
+</script>
 
-    </script>
 </body>
 </html>
-
-
-
