@@ -760,6 +760,11 @@
         window.alertBox = alertBox;
         window.downloadPDF = downloadPDF;
     </script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/Diet-based-Grocery-generator/service-worker.js');
+}
+</script>
 
     <script>
 async function askAI(userMessage) {
@@ -795,5 +800,6 @@ async function askAI(userMessage) {
 
 </body>
     </html>
+
 
 
