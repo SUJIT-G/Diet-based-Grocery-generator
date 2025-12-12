@@ -1,0 +1,23 @@
+{
+  "name": "Diet-Based Grocery List Generator",
+  "short_name": "Diet Grocery",
+  "description": "AI-based weekly meal planner and grocery list generator.",
+  "start_url": "/Diet-based-Grocery-generator/",
+  "scope": "/Diet-based-Grocery-generator/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4CAF50",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/G-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/G-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
