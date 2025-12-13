@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grocery List Generator (Diet Based)</title>
+    <link rel="manifest" href="manifest.json">
     
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -274,7 +275,7 @@
 
         // --- Gemini API Constants ---
         // REPLACE THIS WITH YOUR VALID GENAI KEY!
-        const API_KEY = "AIzaSyChh_xw69TUmsmDfx94SvXDsJIYT3AFiiM"; 
+        const apiKey = "API_KEY_IS_SERVER_SIDE_ONLY";
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
         
         // JSON Schema for structured meal plan response
@@ -800,6 +801,7 @@ async function askAI(userMessage) {
 
 </body>
     </html>
+
 
 
 
