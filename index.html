@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grocery List Generator (Diet Based)</title>
-    <link rel="manifest" href="manifest.json">
     
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -71,7 +70,6 @@
 
     <!-- Load PDF Generation Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<link rel="manifest" href="manifest.json">
 
 </head>
 <body class="font-sans bg-background min-h-screen flex flex-col">
@@ -161,23 +159,6 @@
                             Clear All
                         </button>
                     </div>
-
-                    <div style="max-width: 500px; margin: 20px auto; font-family: Arial;">
-    <h2>AI Grocery & Diet Assistant</h2>
-
-    <textarea id="userInput" placeholder="Ask something..." 
-        style="width:100%; height:120px; padding:10px;"></textarea>
-
-    <button onclick="askAI(document.getElementById('userInput').value)"
-        style="margin-top:10px; padding:10px 20px; cursor:pointer;">
-        Ask AI
-    </button>
-
-    <pre id="response" 
-         style="background:#f3f3f3; padding:15px; margin-top:20px; white-space:pre-wrap;">
-    </pre>
-</div>
-
 
                     <!-- List Content (Scrollable section) -->
                     <div id="shoppingListContainer" class="space-y-2 max-h-[70vh] overflow-y-auto pr-2" data-generated-list="[]">
@@ -275,7 +256,7 @@
 
         // --- Gemini API Constants ---
         // REPLACE THIS WITH YOUR VALID GENAI KEY!
-        const apiKey = "API_KEY_IS_SERVER_SIDE_ONLY";
+        const API_KEY = "AIzaSyChh_xw69TUmsmDfx94SvXDsJIYT3AFiiM"; 
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
         
         // JSON Schema for structured meal plan response
@@ -761,53 +742,5 @@
         window.alertBox = alertBox;
         window.downloadPDF = downloadPDF;
     </script>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/Diet-based-Grocery-generator/service-worker.js');
-}
-</script>
-
-    <script>
-async function askAI(userMessage) {
-    const responseBox = document.getElementById("response");
-    responseBox.innerHTML = "⏳ Thinking...";
-
-    try {
-        const res = await fetch("https://diet-grocery-ai.devsujit.workers.dev/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "gpt-4.1-mini",   // change model if needed
-                messages: [
-                    { role: "user", content: userMessage }
-                ]
-            })
-        });
-
-        const data = await res.json();
-
-        // Handle streaming or non-streaming responses
-        responseBox.innerHTML =
-            data?.choices?.[0]?.message?.content ||
-            JSON.stringify(data, null, 2);
-
-    } catch (err) {
-        responseBox.innerHTML = "❌ Error: " + err.message;
-    }
-}
-</script>
-<script>
-  if (typeof navigator.serviceWorker !== 'undefined') {
-    navigator.serviceWorker.register('sw.js')
-  }
-</script>
-    
 </body>
-    </html>
-
-
-
-
-
+</html>
