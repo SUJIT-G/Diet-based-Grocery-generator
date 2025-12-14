@@ -207,34 +207,17 @@
         let auth = null;
         let userId = null;
 
-        // Initialize and sign in
         if (Object.keys(firebaseConfig).length > 0) {
             try {
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
-                
-                // Sign in
                 if (initialAuthToken) {
-                    signInWithCustomToken(auth, initialAuthToken)
-                        .then((userCredential) => {
-                            userId = userCredential.user.uid;
-                        })
-                        .catch((error) => {
-                            console.error("Firebase custom token sign-in failed:", error);
-                        });
+                    signInWithCustomToken(auth, initialAuthToken).then((u) => userId = u.user.uid);
                 } else {
-                    signInAnonymously(auth)
-                        .then((userCredential) => {
-                            userId = userCredential.user.uid;
-                        })
-                        .catch((error) => {
-                            console.error("Firebase anonymous sign-in failed:", error);
-                        });
+                    signInAnonymously(auth).then((u) => userId = u.user.uid);
                 }
-            } catch (error) {
-                console.error("Firebase initialization failed:", error);
-            }
+            } catch (error) { console.error("Firebase initialization failed:", error); }
         }
         // --- End Firebase Setup ---
 
@@ -255,39 +238,17 @@
         const downloadPdfBtn = document.getElementById('downloadPdfBtn'); 
         const copyListBtn = document.getElementById('copyListBtn'); 
 
-        // --- Gemini API Constants (For Meal Plan) ---
-        // REPLACE THIS WITH YOUR VALID GENAI KEY IF NEEDED
+        // --- Gemini API Constants ---
         const API_KEY = "AIzaSyChh_xw69TUmsmDfx94SvXDsJIYT3AFiiM"; 
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
         
-        // JSON Schema for structured meal plan response
         const MEAL_PLAN_SCHEMA = {
-            type: "ARRAY",
-            description: "A detailed meal plan structure.",
-            items: {
-                type: "OBJECT",
-                properties: {
-                    day: { type: "STRING", description: "The day number, e.g., Day 1." },
-                    meals: {
-                        type: "OBJECT",
-                        properties: {
-                            Breakfast: { type: "STRING", description: "Recipe or meal idea for breakfast." },
-                            Lunch: { type: "STRING", description: "Recipe or meal idea for lunch." },
-                            Dinner: { type: "STRING", description: "Recipe or meal idea for dinner." }
-                        },
-                        propertyOrdering: ["Breakfast", "Lunch", "Dinner"]
-                    }
-                },
-                propertyOrdering: ["day", "meals"]
-            }
+            type: "ARRAY", items: { type: "OBJECT", properties: { day: { type: "STRING" }, meals: { type: "OBJECT", properties: { Breakfast: { type: "STRING" }, Lunch: { type: "STRING" }, Dinner: { type: "STRING" } } } } }
         };
 
         // --- Utility Functions ---
 
-        /**
-         * Generic function to handle API calls with exponential backoff.
-         */
-        async function fetchWithBackoff(payload, maxRetries = 5) {
+        async function fetchWithBackoff(payload, maxRetries = 3) {
             for (let i = 0; i < maxRetries; i++) {
                 try {
                     const response = await fetch(API_URL, {
@@ -295,84 +256,91 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
-                    
-                    if (response.status === 429 && i < maxRetries - 1) {
-                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        continue;
-                    }
-
-                    if (!response.ok) {
-                        throw new Error(`API request failed with status ${response.status}`);
-                    }
-
+                    if (!response.ok) throw new Error(`API status ${response.status}`);
                     return response.json();
-
                 } catch (error) {
-                    if (i === maxRetries - 1) {
-                        throw error;
-                    }
-                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-                    await new Promise(resolve => setTimeout(resolve, delay));
+                    if (i === maxRetries - 1) throw error;
+                    await new Promise(r => setTimeout(r, 1000));
                 }
             }
+        }
+
+        // --- Parsing Logic for Text Responses ---
+        /**
+         * Parses unstructured Markdown text (like "1. Apples") into structured objects.
+         */
+        function parseMarkdownList(text) {
+            const lines = text.split('\n');
+            const items = [];
+            let currentCategory = 'Miscellaneous';
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+
+                // Detect Category Headers (e.g., "**Fruits:**" or "Fruits:")
+                // Removing ** and : to get clean name
+                if ((trimmed.startsWith('**') || trimmed.endsWith(':')) && !trimmed.match(/^\d+\./)) {
+                    currentCategory = trimmed.replace(/\*\*/g, '').replace(/:/g, '').trim();
+                    continue;
+                }
+
+                // Detect List Items (e.g., "1. Apples")
+                const match = trimmed.match(/^\d+\.\s+(.*)/);
+                if (match) {
+                    const content = match[1];
+                    items.push({
+                        name: content,
+                        qty: 1, // Default since text doesn't specify
+                        unit: 'unit', // Default
+                        category: currentCategory
+                    });
+                }
+            }
+            return items;
         }
 
         // --- UI Rendering Functions ---
 
-        /**
-         * Toggles the checked status of a list item.
-         */
         function toggleCheck(event) {
-            const item = event.currentTarget;
-            item.classList.toggle('checked');
+            event.currentTarget.classList.toggle('checked');
         }
 
-        /**
-         * Renders the generated list, grouped by category, into the container.
-         */
         function renderList(list) {
-            listContainer.innerHTML = ''; // Clear previous list
+            listContainer.innerHTML = '';
             initialPlaceholder.classList.add('hidden');
             clearListButton.classList.remove('hidden');
             generatePlanBtn.classList.remove('hidden');
-            generatePlanBtn.disabled = false; // Enable LLM button
-            
+            generatePlanBtn.disabled = false;
             copyListBtn.classList.remove('hidden');
             downloadPdfBtn.classList.add('hidden'); 
 
-            // Handle case where list might be wrapped in an object or just an array
-            // Adjust based on your Worker's actual response format if necessary
+            // Standardize list format (handle JSON array or Parsed Array)
             const items = Array.isArray(list) ? list : (list.items || list.list || []);
 
             if (items.length === 0) {
-                 listContainer.innerHTML = '<div class="text-center p-4 text-gray-500">No items returned. Please try again.</div>';
+                 listContainer.innerHTML = '<div class="text-center p-4 text-gray-500">No readable items found in response.</div>';
                  return;
             }
 
-            // 1. Grouping the list by category
             const categories = items.reduce((acc, item) => {
                 const category = item.category || 'Miscellaneous';
-                if (!acc[category]) {
-                    acc[category] = [];
-                }
+                if (!acc[category]) acc[category] = [];
                 acc[category].push(item);
                 return acc;
             }, {});
 
-            // 2. Define preferred category order for display
-            const categoryOrder = ["Produce", "Protein/Meat", "Dairy/Eggs", "Grains/Starches", "Pantry Staples", "Fats/Oils", "Miscellaneous"];
+            const categoryOrder = ["Fruits", "Vegetables", "Produce", "Protein sources", "Protein/Meat", "Dairy alternatives", "Dairy/Eggs", "Grains", "Healthy fats", "Pantry Staples", "Beverages", "Snacks", "Miscellaneous"];
             
-            // 3. Sort category keys based on preferred order
             const sortedCategories = Object.keys(categories).sort((a, b) => {
                 const indexA = categoryOrder.indexOf(a);
                 const indexB = categoryOrder.indexOf(b);
-                if (indexA === -1) return 1; 
-                if (indexB === -1) return -1;
-                return indexA - indexB;
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                if (indexA !== -1) return -1;
+                if (indexB !== -1) return 1;
+                return a.localeCompare(b);
             });
 
-            // 4. Render categories and their items
             sortedCategories.forEach(category => {
                 const header = document.createElement('h3');
                 header.className = 'text-lg font-extrabold text-primary-dark mt-6 mb-2 border-b-2 border-accent/50 pb-1 uppercase tracking-wider sticky top-0 bg-card z-[5] pt-1';
@@ -384,73 +352,58 @@
                     listItem.className = 'check-item flex items-center p-3 rounded-lg text-gray-800';
                     listItem.onclick = toggleCheck;
                     
+                    // Handle default text format where unit might be generic
+                    const qtyDisplay = item.qty === 1 && item.unit === 'unit' ? '' : `${item.qty} ${item.unit}`;
+
                     listItem.innerHTML = `
                         <span class="text-accent mr-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <path d="M8 12l2 2 4-4" class="check-mark" style="transition: all 0.2s;"/>
-                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M8 12l2 2 4-4"/></svg>
                         </span>
                         <span class="font-medium flex-grow">${item.name}</span>
-                        <span class="text-sm font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-md">${item.qty} ${item.unit}</span>
+                        ${qtyDisplay ? `<span class="text-sm font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-md">${qtyDisplay}</span>` : ''}
                     `;
                     listContainer.appendChild(listItem);
                 });
             });
-
-            console.log(`List generated for ${items.length} unique items.`);
         }
 
-        /**
-         * Renders the meal plan from the structured JSON response.
-         */
         function renderMealPlan(mealPlan) {
-            mealPlanContainer.innerHTML = ''; // Clear previous plan
+            mealPlanContainer.innerHTML = '';
             mealPlanSection.classList.remove('hidden');
-            downloadPdfBtn.classList.remove('hidden'); // Show PDF button after meal plan generation
+            downloadPdfBtn.classList.remove('hidden');
 
             mealPlan.forEach(dayPlan => {
                 const dayCard = document.createElement('div');
                 dayCard.className = 'bg-gray-50 p-4 rounded-lg shadow-inner border border-gray-200';
-                
-                const meals = dayPlan.meals;
-                
                 dayCard.innerHTML = `
                     <h4 class="text-lg font-bold text-gray-800 border-b pb-1 mb-3">${dayPlan.day}</h4>
                     <div class="space-y-2 text-sm text-gray-700">
-                        <p><span class="font-semibold text-accent">Breakfast:</span> ${meals.Breakfast || 'N/A'}</p>
-                        <p><span class="font-semibold text-accent">Lunch:</span> ${meals.Lunch || 'N/A'}</p>
-                        <p><span class="font-semibold text-accent">Dinner:</span> ${meals.Dinner || 'N/A'}</p>
+                        <p><span class="font-semibold text-accent">Breakfast:</span> ${dayPlan.meals.Breakfast || 'N/A'}</p>
+                        <p><span class="font-semibold text-accent">Lunch:</span> ${dayPlan.meals.Lunch || 'N/A'}</p>
+                        <p><span class="font-semibold text-accent">Dinner:</span> ${dayPlan.meals.Dinner || 'N/A'}</p>
                     </div>
                 `;
                 mealPlanContainer.appendChild(dayCard);
             });
-            console.log(`Meal plan successfully generated for ${mealPlan.length} days!`);
         }
 
         // --- Core Application Functions ---
 
-        /**
-         * MAIN FUNCTION: Generates the grocery list using the Worker AI.
-         */
         async function generateList() {
             const diet = dietTypeSelect.value;
             const duration = durationInput.value;
             const people = peopleInput.value;
 
-            // 1. Validation
-            if (!diet || !duration || !people || duration < 1 || people < 1) {
-                alertBox('Please ensure all planning fields are selected and valid.', 'Input Error');
+            if (!diet || !duration || !people) {
+                alertBox('Please select a diet and enter valid numbers.', 'Input Error');
                 return;
             }
 
-            // 2. Prepare UI for Loading
             mealPlanSection.classList.add('hidden');
             downloadPdfBtn.classList.add('hidden');
             generateListBtn.disabled = true;
             generateListBtn.textContent = 'Worker AI Generating...';
             
-            // Show a temporary loading placeholder in the list container
             listContainer.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-12 space-y-4">
                     <div class="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
@@ -460,40 +413,33 @@
             initialPlaceholder.classList.add('hidden');
 
             try {
-                // 3. Construct the goal string based on form inputs
-                const goalDescription = `Grocery list for ${people} people for ${duration} days`;
-
-                // 4. Call the Worker API
                 const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        diet: diet, // dynamic value from your form
-                        goal: goalDescription, // composed dynamic value
-                    }),
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ diet: diet, goal: `Grocery list for ${people} people for ${duration} days` }),
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Worker returned status: ${response.status}`);
+                if (!response.ok) throw new Error(`Status: ${response.status}`);
+
+                // READ RESPONSE AS TEXT FIRST to handle markdown/text responses
+                const textResponse = await response.text();
+                
+                let data;
+                try {
+                    // Try parsing as JSON first
+                    data = JSON.parse(textResponse);
+                } catch (e) {
+                    // If JSON fails, assume it is MARKDOWN TEXT and parse it manually
+                    console.log("Response is not JSON, parsing as text...");
+                    data = parseMarkdownList(textResponse);
                 }
 
-                const data = await response.json();
-
-                // 5. Render the result
-                // We assume the worker returns the list in a format compatible with renderList
-                // (Array of objects with name, qty, unit, category)
                 renderList(data);
-                
-                // Store list for the Meal Plan Generator to use later
                 listContainer.dataset.generatedList = JSON.stringify(data);
 
             } catch (error) {
-                console.error("Worker Generation Error:", error);
-                alertBox('Failed to generate list from Worker AI. Check console for details.', 'Connection Error');
-                
-                // Reset UI to initial state on error
+                console.error("Worker Error:", error);
+                alertBox('Failed to generate list. See console for details.', 'Connection Error');
                 listContainer.innerHTML = '';
                 initialPlaceholder.classList.remove('hidden');
             } finally {
@@ -502,9 +448,6 @@
             }
         }
 
-        /**
-         * LLM-powered function to generate a meal plan based on inputs and list.
-         */
         async function generateMealPlan() {
             const diet = dietTypeSelect.value;
             const duration = durationInput.value;
@@ -520,180 +463,98 @@
             planLoading.classList.remove('hidden');
             mealPlanContainer.innerHTML = '';
             mealPlanSection.classList.remove('hidden');
-            downloadPdfBtn.classList.add('hidden'); // Hide PDF while generating
+            downloadPdfBtn.classList.add('hidden'); 
 
             try {
                 const generatedList = JSON.parse(generatedListJson);
-                // Handle if list is wrapped in an object
-                const listItems = Array.isArray(generatedList) ? generatedList : (generatedList.items || generatedList.list || []);
-                const ingredientNames = listItems.map(item => `${item.qty} ${item.unit} of ${item.name}`).join('; ');
+                // Extract simple list of names for the prompt
+                const items = Array.isArray(generatedList) ? generatedList : (generatedList.items || []);
+                const ingredientNames = items.map(item => item.name).join(', ');
                 
-                const systemPrompt = "You are a professional diet and meal planning assistant. Your task is to create a concise, easy-to-follow meal plan based on the user's requirements. The entire response must be a single JSON array that adheres strictly to the provided schema. Do not include any text outside of the JSON structure.";
-                const userQuery = `Create a ${duration} day meal plan for ${people} people following a "${diet}" diet. Use the following ingredients list as inspiration, but feel free to suggest other common pantry staples: ${ingredientNames}. Keep recipes simple and clear.`;
+                const systemPrompt = "You are a meal planning assistant. Create a JSON array strictly following the schema.";
+                const userQuery = `Create a ${duration} day meal plan for ${people} people following a "${diet}" diet using these ingredients: ${ingredientNames}.`;
 
                 const payload = {
                     contents: [{ parts: [{ text: userQuery }] }],
                     systemInstruction: { parts: [{ text: systemPrompt }] },
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: MEAL_PLAN_SCHEMA,
-                    }
+                    generationConfig: { responseMimeType: "application/json", responseSchema: MEAL_PLAN_SCHEMA }
                 };
 
                 const result = await fetchWithBackoff(payload);
-                
                 const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                
-                if (jsonText) {
-                    const parsedJson = JSON.parse(jsonText);
-                    renderMealPlan(parsedJson);
-                } else {
-                    throw new Error("API returned an unexpected structure or empty response.");
-                }
+                if (jsonText) renderMealPlan(JSON.parse(jsonText));
+                else throw new Error("Empty AI response");
+
             } catch (error) {
                 console.error("Gemini API Error:", error);
-                alertBox('Failed to generate meal plan. Please check your inputs and try again.', 'AI Error');
+                alertBox('Failed to generate meal plan.', 'AI Error');
             } finally {
                 generatePlanBtn.disabled = false;
                 planLoading.classList.add('hidden');
             }
         }
         
-        /**
-         * Downloads the current Shopping List and Meal Plan as a PDF.
-         */
         function downloadPDF() {
-            // Check if html2pdf is available
-            if (typeof html2pdf === 'undefined') {
-                alertBox('PDF library not loaded. Cannot download.', 'Error');
-                return;
-            }
+            if (typeof html2pdf === 'undefined') { alertBox('PDF library missing.', 'Error'); return; }
 
             generateListBtn.disabled = true;
             downloadPdfBtn.disabled = true;
             downloadPdfBtn.textContent = 'Preparing PDF...';
             
-            // 1. Create a container for the PDF content
             const contentDiv = document.createElement('div');
             contentDiv.className = 'p-6 font-sans';
-            
-            // 2. Add Title
             contentDiv.innerHTML = `<h1 style="font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #10B981;">Grocery & Meal Plan Report</h1>`;
-
-            // 3. Add Shopping List
-            contentDiv.innerHTML += `<h2 style="font-size: 20px; font-weight: bold; margin-top: 20px; border-bottom: 2px solid #ccc; padding-bottom: 5px;">Shopping List</h2>`;
             
-            // Clone the list container content and remove interactive/scrolling styles for print
             const clonedList = listContainer.cloneNode(true);
-            clonedList.classList.add('pdf-content-wrapper'); // Custom class to override scroll behavior
+            clonedList.classList.add('pdf-content-wrapper');
             clonedList.style.marginBottom = '20px';
-            clonedList.style.paddingRight = '0'; // Remove inner padding/scrollbar space
             contentDiv.appendChild(clonedList);
 
-            // 4. Add Meal Plan
-            if (!mealPlanSection.classList.contains('hidden') && mealPlanContainer.innerHTML.trim()) {
-                contentDiv.innerHTML += `<h2 style="font-size: 20px; font-weight: bold; margin-top: 30px; border-bottom: 2px solid #ccc; padding-bottom: 5px;">AI Meal Plan</h2>`;
-                
-                const clonedPlan = mealPlanContainer.cloneNode(true);
-                contentDiv.appendChild(clonedPlan);
+            if (!mealPlanSection.classList.contains('hidden')) {
+                contentDiv.innerHTML += `<h2 style="font-size: 20px; font-weight: bold; margin-top: 30px; border-bottom: 2px solid #ccc;">Meal Plan</h2>`;
+                contentDiv.appendChild(mealPlanContainer.cloneNode(true));
             }
             
-            // 5. Generate PDF
-            const options = {
-                margin: 10,
-                filename: 'grocery_meal_plan.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, logging: false },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            // Using the library's chainable methods
-            html2pdf().from(contentDiv).set(options).save().then(() => {
-                 // Re-enable buttons
-                 generateListBtn.disabled = false;
-                 downloadPdfBtn.disabled = false;
-                 downloadPdfBtn.textContent = 'Download PDF';
-            }).catch((error) => {
-                 console.error("PDF Generation Error:", error);
-                 alertBox('Failed to generate PDF. Please try again.', 'PDF Error');
+            html2pdf().from(contentDiv).save('grocery_plan.pdf').then(() => {
                  generateListBtn.disabled = false;
                  downloadPdfBtn.disabled = false;
                  downloadPdfBtn.textContent = 'Download PDF';
             });
         }
         
-        /**
-         * Clears all items in the current list and resets the UI.
-         */
         function clearList() {
             listContainer.innerHTML = '';
             initialPlaceholder.classList.remove('hidden');
             clearListButton.classList.add('hidden');
             generatePlanBtn.classList.add('hidden');
             mealPlanSection.classList.add('hidden');
-            mealPlanContainer.innerHTML = '';
-            
-            // Hide header action buttons
             copyListBtn.classList.add('hidden');
             downloadPdfBtn.classList.add('hidden'); 
-            
-            delete listContainer.dataset.generatedList; // Clear stored list
+            delete listContainer.dataset.generatedList;
         }
         
-        /**
-         * Copies the current grocery list (only un-checked items) to the clipboard.
-         */
         function copyList() {
             const listItems = Array.from(listContainer.querySelectorAll('.check-item:not(.checked)'));
-            
-            if (listItems.length === 0) {
-                alertBox('The list is empty or all items have been checked off!', 'Cannot Copy');
-                return;
-            }
+            if (!listItems.length) return alertBox('List is empty.', 'Cannot Copy');
 
-            const listText = listItems.map(item => {
-                const name = item.querySelector('span:nth-child(2)').textContent.trim();
-                const quantity = item.querySelector('span:nth-child(3)').textContent.trim();
-                return `- ${name} (${quantity})`;
-            }).join('\n');
-
-            try {
-                // Use execCommand for broader compatibility in sandboxed environments
-                const tempTextArea = document.createElement('textarea');
-                tempTextArea.value = listText;
-                document.body.appendChild(tempTextArea);
-                tempTextArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(tempTextArea);
-                alertBox('Successfully copied ' + listItems.length + ' item(s) to the clipboard!', 'Copy Success');
-            } catch (err) {
-                console.error('Failed to copy text:', err);
-                alertBox('Failed to copy list. Please try again or manually select the text.', 'Copy Error');
-            }
+            const listText = listItems.map(item => `- ${item.querySelector('span:nth-child(2)').textContent.trim()}`).join('\n');
+            navigator.clipboard.writeText(listText).then(() => alertBox('Copied to clipboard!', 'Success'));
         }
 
-        /**
-         * Custom modal for notifications and errors (replaces alert()).
-         */
         function alertBox(message, title = "Notification") {
             const existingModal = document.getElementById('customAlertModal');
             if (existingModal) existingModal.remove();
-
-            const modalHtml = `
+            document.body.insertAdjacentHTML('beforeend', `
                 <div id="customAlertModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 z-50 flex items-center justify-center p-4">
-                    <div class="bg-card rounded-xl p-6 w-full max-w-sm shadow-2xl transform transition-all duration-300 scale-100">
+                    <div class="bg-card rounded-xl p-6 w-full max-w-sm shadow-2xl">
                         <h3 class="text-xl font-bold text-gray-900 mb-3">${title}</h3>
                         <p class="text-gray-600 mb-6">${message}</p>
-                        <button onclick="document.getElementById('customAlertModal').remove()" class="w-full py-2 bg-accent text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors">
-                            Close
-                        </button>
+                        <button onclick="document.getElementById('customAlertModal').remove()" class="w-full py-2 bg-accent text-white font-semibold rounded-lg hover:bg-primary-dark">Close</button>
                     </div>
                 </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            `);
         }
 
-        // Initialize display on window load
         window.onload = function() {
             initialPlaceholder.classList.remove('hidden');
             clearListButton.classList.add('hidden');
@@ -702,8 +563,6 @@
             downloadPdfBtn.classList.add('hidden'); 
         };
 
-
-        // *************** Expose module functions to the global scope ***************
         window.generateList = generateList;
         window.generateMealPlan = generateMealPlan;
         window.copyList = copyList;
