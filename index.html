@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grocery List Generator (Diet Based)</title>
+    <title>Grocery List Generator (Worker AI)</title>
     
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -238,6 +238,8 @@
         }
         // --- End Firebase Setup ---
 
+        // --- Worker AI Configuration ---
+        const API_ENDPOINT = 'https://odd-forest-e645.devsujit.workers.dev/generate-list'; 
 
         const dietTypeSelect = document.getElementById('dietType');
         const durationInput = document.getElementById('duration');
@@ -245,17 +247,16 @@
         const listContainer = document.getElementById('shoppingListContainer');
         const initialPlaceholder = document.getElementById('initialPlaceholder');
         const clearListButton = document.getElementById('clearListButton');
-        // NOTE: messageElement was referenced but not defined in the original HTML. We skip it or assume it's meant for console/alert.
         const generatePlanBtn = document.getElementById('generatePlanBtn');
         const generateListBtn = document.getElementById('generateListBtn');
         const mealPlanSection = document.getElementById('mealPlanSection');
         const mealPlanContainer = document.getElementById('mealPlanContainer');
         const planLoading = document.getElementById('planLoading');
         const downloadPdfBtn = document.getElementById('downloadPdfBtn'); 
-        const copyListBtn = document.getElementById('copyListBtn'); // NEW: Added ID for responsive control
+        const copyListBtn = document.getElementById('copyListBtn'); 
 
-        // --- Gemini API Constants ---
-        // REPLACE THIS WITH YOUR VALID GENAI KEY!
+        // --- Gemini API Constants (For Meal Plan) ---
+        // REPLACE THIS WITH YOUR VALID GENAI KEY IF NEEDED
         const API_KEY = "AIzaSyChh_xw69TUmsmDfx94SvXDsJIYT3AFiiM"; 
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
         
@@ -296,7 +297,6 @@
                     });
                     
                     if (response.status === 429 && i < maxRetries - 1) {
-                        // Rate limit error, wait and retry
                         const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
                         await new Promise(resolve => setTimeout(resolve, delay));
                         continue;
@@ -312,89 +312,10 @@
                     if (i === maxRetries - 1) {
                         throw error;
                     }
-                    // Wait before the next retry
                     const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
                     await new Promise(resolve => setTimeout(resolve, delay));
                 }
             }
-        }
-
-
-        // --- Data Mocking Function ---
-
-        /**
-         * Generates a mock grocery list based on the chosen diet and scales quantities.
-         */
-        function generateMockList(diet, duration, people) {
-            let baseList = [];
-            
-            // Base items per diet (simplified) with Category added
-            switch(diet) {
-                case 'keto':
-                    baseList = [
-                        { name: "Ground Beef (80/20)", unit: "lbs", qty: 2.5, category: "Protein/Meat" },
-                        { name: "Eggs", unit: "dozen", qty: 2, category: "Dairy/Eggs" },
-                        { name: "Avocados", unit: "count", qty: 6, category: "Produce" },
-                        { name: "Spinach", unit: "bags", qty: 3, category: "Produce" },
-                        { name: "Almond Flour", unit: "cups", qty: 4, category: "Grains/Starches" },
-                        { name: "Heavy Cream", unit: "oz", qty: 16, category: "Dairy/Eggs" },
-                        { name: "Olive Oil", unit: "bottle", qty: 1, category: "Fats/Oils" }
-                    ];
-                    break;
-                case 'mediterranean':
-                    baseList = [
-                        { name: "Whole Wheat Pasta", unit: "boxes", qty: 1.5, category: "Grains/Starches" },
-                        { name: "Canned Chickpeas", unit: "cans", qty: 4, category: "Pantry Staples" },
-                        { name: "Salmon Fillets", unit: "lbs", qty: 1.5, category: "Protein/Meat" },
-                        { name: "Bell Peppers", unit: "count", qty: 8, category: "Produce" },
-                        { name: "Feta Cheese", unit: "oz", qty: 8, category: "Dairy/Eggs" },
-                        { name: "Pita Bread", unit: "pack", qty: 2, category: "Grains/Starches" },
-                        { name: "Cucumbers", unit: "count", qty: 4, category: "Produce" }
-                    ];
-                    break;
-                case 'vegan':
-                    baseList = [
-                        { name: "Tofu, Firm", unit: "blocks", qty: 4, category: "Protein/Meat" },
-                        { name: "Black Beans", unit: "cans", qty: 6, category: "Pantry Staples" },
-                        { name: "Oats, Rolled", unit: "lbs", qty: 3, category: "Grains/Starches" },
-                        { name: "Nutritional Yeast", unit: "cups", qty: 1, category: "Pantry Staples" },
-                        { name: "Broccoli", unit: "heads", qty: 5, category: "Produce" },
-                        { name: "Lentils, Dry", unit: "cups", qty: 2, category: "Pantry Staples" },
-                        { name: "Bananas", unit: "count", qty: 12, category: "Produce" }
-                    ];
-                    break;
-                case 'high_protein':
-                    baseList = [
-                        { name: "Chicken Breast", unit: "lbs", qty: 3, category: "Protein/Meat" },
-                        { name: "Whey Protein Powder", unit: "scoops", qty: 35, category: "Miscellaneous" },
-                        { name: "Cottage Cheese", unit: "containers", qty: 3, category: "Dairy/Eggs" },
-                        { name: "Brown Rice", unit: "cups", qty: 8, category: "Grains/Starches" },
-                        { name: "Sweet Potatoes", unit: "count", qty: 6, category: "Produce" },
-                        { name: "Peanut Butter", unit: "jar", qty: 1, category: "Pantry Staples" }
-                    ];
-                    break;
-                case 'standard':
-                default:
-                    baseList = [
-                        { name: "Milk (2%)", unit: "gallon", qty: 1, category: "Dairy/Eggs" },
-                        { name: "Sliced Bread", unit: "loaf", qty: 1, category: "Grains/Starches" },
-                        { name: "Ground Turkey", unit: "lbs", qty: 1.5, category: "Protein/Meat" },
-                        { name: "Apples", unit: "count", qty: 6, category: "Produce" },
-                        { name: "Potatoes", unit: "lbs", qty: 5, category: "Produce" },
-                        { name: "Cereal", unit: "box", qty: 1, category: "Pantry Staples" }
-                    ];
-            }
-
-            // Scaling logic: scale the list based on duration and number of people
-            const scaleFactor = (duration / 7) * (people / 2);
-            
-            return baseList.map(item => ({
-                name: item.name,
-                // Round quantity to nearest whole number
-                qty: Math.ceil(item.qty * scaleFactor),
-                unit: item.unit,
-                category: item.category
-            }));
         }
 
         // --- UI Rendering Functions ---
@@ -417,12 +338,20 @@
             generatePlanBtn.classList.remove('hidden');
             generatePlanBtn.disabled = false; // Enable LLM button
             
-            // NEW: Show header action buttons
             copyListBtn.classList.remove('hidden');
-            downloadPdfBtn.classList.add('hidden'); // PDF button only shows when meal plan is ready
+            downloadPdfBtn.classList.add('hidden'); 
+
+            // Handle case where list might be wrapped in an object or just an array
+            // Adjust based on your Worker's actual response format if necessary
+            const items = Array.isArray(list) ? list : (list.items || list.list || []);
+
+            if (items.length === 0) {
+                 listContainer.innerHTML = '<div class="text-center p-4 text-gray-500">No items returned. Please try again.</div>';
+                 return;
+            }
 
             // 1. Grouping the list by category
-            const categories = list.reduce((acc, item) => {
+            const categories = items.reduce((acc, item) => {
                 const category = item.category || 'Miscellaneous';
                 if (!acc[category]) {
                     acc[category] = [];
@@ -438,7 +367,6 @@
             const sortedCategories = Object.keys(categories).sort((a, b) => {
                 const indexA = categoryOrder.indexOf(a);
                 const indexB = categoryOrder.indexOf(b);
-                // Put categories not in the order at the end
                 if (indexA === -1) return 1; 
                 if (indexB === -1) return -1;
                 return indexA - indexB;
@@ -446,13 +374,11 @@
 
             // 4. Render categories and their items
             sortedCategories.forEach(category => {
-                // Category Header (The "fill box" visual separation)
                 const header = document.createElement('h3');
                 header.className = 'text-lg font-extrabold text-primary-dark mt-6 mb-2 border-b-2 border-accent/50 pb-1 uppercase tracking-wider sticky top-0 bg-card z-[5] pt-1';
                 header.textContent = category;
                 listContainer.appendChild(header);
 
-                // Items in that category
                 categories[category].forEach(item => {
                     const listItem = document.createElement('div');
                     listItem.className = 'check-item flex items-center p-3 rounded-lg text-gray-800';
@@ -472,8 +398,7 @@
                 });
             });
 
-            // The original code referenced messageElement which doesn't exist, we will use console log instead
-            console.log(`List generated for ${list.length} unique items, categorized by grocery section.`);
+            console.log(`List generated for ${items.length} unique items.`);
         }
 
         /**
@@ -500,39 +425,81 @@
                 `;
                 mealPlanContainer.appendChild(dayCard);
             });
-             // The original code referenced messageElement which doesn't exist.
-            console.log(`List generated. Meal plan successfully generated for ${mealPlan.length} days!`);
+            console.log(`Meal plan successfully generated for ${mealPlan.length} days!`);
         }
 
         // --- Core Application Functions ---
 
         /**
-         * Main function to generate the grocery list (MOCK).
+         * MAIN FUNCTION: Generates the grocery list using the Worker AI.
          */
-        function generateList() {
+        async function generateList() {
             const diet = dietTypeSelect.value;
-            const duration = parseInt(durationInput.value);
-            const people = parseInt(peopleInput.value);
+            const duration = durationInput.value;
+            const people = peopleInput.value;
 
-            if (!diet || isNaN(duration) || isNaN(people) || duration < 1 || people < 1) {
-                alertBox('Please ensure all planning fields are selected and valid (Diet, Duration > 0, People > 0).', 'Input Error');
+            // 1. Validation
+            if (!diet || !duration || !people || duration < 1 || people < 1) {
+                alertBox('Please ensure all planning fields are selected and valid.', 'Input Error');
                 return;
             }
 
-            // Reset plan view and show temporary loading/message state
+            // 2. Prepare UI for Loading
             mealPlanSection.classList.add('hidden');
-            console.log(`Generating list for ${diet.toUpperCase()} plan...`);
-            generateListBtn.disabled = true;
             downloadPdfBtn.classList.add('hidden');
+            generateListBtn.disabled = true;
+            generateListBtn.textContent = 'Worker AI Generating...';
+            
+            // Show a temporary loading placeholder in the list container
+            listContainer.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-12 space-y-4">
+                    <div class="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
+                    <p class="text-gray-500 font-medium">Asking Worker AI for your list...</p>
+                </div>
+            `;
+            initialPlaceholder.classList.add('hidden');
 
-            // Simulate loading/processing delay
-            setTimeout(() => {
-                const generatedList = generateMockList(diet, duration, people);
-                renderList(generatedList);
+            try {
+                // 3. Construct the goal string based on form inputs
+                const goalDescription = `Grocery list for ${people} people for ${duration} days`;
+
+                // 4. Call the Worker API
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        diet: diet, // dynamic value from your form
+                        goal: goalDescription, // composed dynamic value
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Worker returned status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // 5. Render the result
+                // We assume the worker returns the list in a format compatible with renderList
+                // (Array of objects with name, qty, unit, category)
+                renderList(data);
+                
+                // Store list for the Meal Plan Generator to use later
+                listContainer.dataset.generatedList = JSON.stringify(data);
+
+            } catch (error) {
+                console.error("Worker Generation Error:", error);
+                alertBox('Failed to generate list from Worker AI. Check console for details.', 'Connection Error');
+                
+                // Reset UI to initial state on error
+                listContainer.innerHTML = '';
+                initialPlaceholder.classList.remove('hidden');
+            } finally {
                 generateListBtn.disabled = false;
-                // Store list for LLM use
-                listContainer.dataset.generatedList = JSON.stringify(generatedList);
-            }, 800);
+                generateListBtn.textContent = 'Generate Shopping List';
+            }
         }
 
         /**
@@ -557,7 +524,9 @@
 
             try {
                 const generatedList = JSON.parse(generatedListJson);
-                const ingredientNames = generatedList.map(item => `${item.qty} ${item.unit} of ${item.name}`).join('; ');
+                // Handle if list is wrapped in an object
+                const listItems = Array.isArray(generatedList) ? generatedList : (generatedList.items || generatedList.list || []);
+                const ingredientNames = listItems.map(item => `${item.qty} ${item.unit} of ${item.name}`).join('; ');
                 
                 const systemPrompt = "You are a professional diet and meal planning assistant. Your task is to create a concise, easy-to-follow meal plan based on the user's requirements. The entire response must be a single JSON array that adheres strictly to the provided schema. Do not include any text outside of the JSON structure.";
                 const userQuery = `Create a ${duration} day meal plan for ${people} people following a "${diet}" diet. Use the following ingredients list as inspiration, but feel free to suggest other common pantry staples: ${ingredientNames}. Keep recipes simple and clear.`;
@@ -604,7 +573,7 @@
             downloadPdfBtn.disabled = true;
             downloadPdfBtn.textContent = 'Preparing PDF...';
             
-            // 1. Create a container for the PDF content (this ensures the styling is isolated for PDF generation)
+            // 1. Create a container for the PDF content
             const contentDiv = document.createElement('div');
             contentDiv.className = 'p-6 font-sans';
             
